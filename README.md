@@ -1,5 +1,3 @@
-Aşağıdaki şekilde bir README hazırlayabiliriz:
-
 
 # Codelabs Flutter Example
 
