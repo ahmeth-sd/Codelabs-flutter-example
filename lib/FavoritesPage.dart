@@ -1,53 +1,69 @@
+// lib/FavoritesPage.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'main.dart';
 
-class FavoritesPage extends StatelessWidget {
+class FavoritesPage extends StatefulWidget {
+  @override
+  _FavoritesPageState createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
+  String searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
-
-    if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet.'),
-      );
-    }
+    var filteredFavorites = appState.favorites
+        .where((pair) => pair.asLowerCase.contains(searchQuery.toLowerCase()))
+        .toList();
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height: 100),
         Padding(
-          padding: const EdgeInsets.all(30),
-          child: Text('You have '
-              '${appState.favorites.length} favorites:'),
-        ),
-        Expanded(
-          // Make better use of wide windows with a grid.
-          child: GridView(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 400,
-              childAspectRatio: 400 / 80,
+          padding: const EdgeInsets.all(20.0),
+          child: TextField(
+            decoration: InputDecoration(
+              labelText: 'Search Favorites',
+              border: OutlineInputBorder(),
             ),
-            children: [
-              for (var pair in appState.favorites)
-                ListTile(
-                  leading: IconButton(
-                    icon: Icon(Icons.delete_outline, semanticLabel: 'Delete'),
-                    color: theme.colorScheme.primary,
-                    onPressed: () {
-                      appState.removeFavorite(pair);
-                    },
-                  ),
-                  title: Text(
-                    pair.asLowerCase,
-                    semanticsLabel: pair.asPascalCase,
-                  ),
-                ),
-            ],
+            onChanged: (value) {
+              setState(() {
+                searchQuery = value;
+              });
+            },
           ),
         ),
+        if (filteredFavorites.isEmpty)
+          Center(
+            child: Text('No favorites found.'),
+          )
+        else
+          Expanded(
+            child: GridView(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 400,
+                childAspectRatio: 400 / 80,
+              ),
+              children: [
+                for (var pair in filteredFavorites)
+                  ListTile(
+                    leading: IconButton(
+                      icon: Icon(Icons.delete_outline, semanticLabel: 'Delete'),
+                      color: Theme.of(context).colorScheme.primary,
+                      onPressed: () {
+                        appState.removeFavorite(pair);
+                      },
+                    ),
+                    title: Text(
+                      pair.asLowerCase,
+                      semanticsLabel: pair.asPascalCase,
+                    ),
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }
